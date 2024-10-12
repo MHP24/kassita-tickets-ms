@@ -35,7 +35,7 @@ model Ticket {
   title       String         @map("title")
   description String         @map("description")
   response    String?        @map("response")
-  images      String[]       @map("images")
+  images      String[]       @default([]) @map("images")
   priority    TicketPriority @default(LOW) @map("priority")
   status      TicketStatus   @default(PENDING) @map("status")
   // * Dates
@@ -43,7 +43,7 @@ model Ticket {
   updatedAt   DateTime       @updatedAt @map("updated_at")
   resolvedAt  DateTime?      @map("resolved_at")
 
-  isAvailable Boolean @map("is_available")
+  isAvailable Boolean @default(true) @map("is_available")
 
   // * Relations
   typeId             String     @map("type_id")
