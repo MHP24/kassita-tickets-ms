@@ -1,8 +1,7 @@
 FROM node:20.12-alpine as base
 
 FROM base as dev
-WORKDIR /app
-RUN npm i -g @nestjs/cli
+WORKDIR /usr/src/app
 COPY package*.json ./
 RUN yarn
 COPY . .

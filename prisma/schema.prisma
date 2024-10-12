@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TicketStatus {
+  PENDING
+  IN_PROGRESS
+  REJECTED
+  SOLVED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model TicketType {
+  id   String @id @default(uuid()) @map("id")
+  type String @unique @map("type")
+
+  // * Relations
+  ticket Ticket[]
+
+  @@map("ticket_types")
+}
+
+model Ticket {
+  id          String         @id @default(uuid()) @map("id")
+  title       String         @map("title")
+  description String         @map("description")
+  response    String?        @map("response")
+  images      String[]       @map("images")
+  priority    TicketPriority @default(LOW) @map("priority")
+  status      TicketStatus   @default(PENDING) @map("status")
+  // * Dates
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  resolvedAt  DateTime?      @map("resolved_at")
+
+  isAvailable Boolean @map("is_available")
+
+  // * Relations
+  typeId             String     @map("type_id")
+  ticketTypeRelation TicketType @relation(fields: [typeId], references: [id])
+
+  @@index([status], name: "index_status")
+  @@index([priority], name: "index_priority")
+  @@index([typeId], name: "index_type_id")
+  @@map("tickets")
+}
