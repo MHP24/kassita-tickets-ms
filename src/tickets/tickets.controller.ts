@@ -27,6 +27,11 @@ export class TicketsController {
     return this.ticketsService.findById(ticketId);
   }
 
+  @MessagePattern('ticket.find-types')
+  findTicketTypes() {
+    return this.ticketsService.findTicketTypes();
+  }
+
   @MessagePattern('ticket.update-status')
   updateStatus(@Payload() updateTicketStatustDto: UpdateTicketStatusDto) {
     return this.ticketsService.updateStatus(updateTicketStatustDto);

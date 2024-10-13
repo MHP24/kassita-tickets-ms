@@ -101,6 +101,7 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
     }
   }
 
+  // * Get a specific ticket by id
   async findById(ticketId: string) {
     const ticket = await this.ticket.findUnique({
       where: { id: ticketId },
@@ -116,6 +117,20 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
     return ticket;
   }
 
+  // * Obtain all categories/types for specific tickets use cases
+  findTicketTypes() {
+    try {
+      return this.ticketType.findMany();
+    } catch (error) {
+      this.logger.error(error);
+      throw new RpcException({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Unexpected error getting ticket types',
+      });
+    }
+  }
+
+  // * Change only the status
   async updateStatus(updateTicketStatusDto: UpdateTicketStatusDto) {
     const { ticketId, status } = updateTicketStatusDto;
     await this.findById(ticketId);
@@ -143,6 +158,7 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
     }
   }
 
+  // * Change only the priority
   async updatePriority(updateTicketPriorityDto: UpdateTicketPriorityDto) {
     const { ticketId, priority } = updateTicketPriorityDto;
     await this.findById(ticketId);
