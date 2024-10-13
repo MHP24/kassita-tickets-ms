@@ -1,7 +1,12 @@
 import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { PrismaClient, TicketPriority, TicketStatus } from '@prisma/client';
-import { CreateTicketDto, PaginationDto, UpdateTicketStatusDto } from './dto';
+import {
+  CreateTicketDto,
+  PaginationDto,
+  UpdateTicketPriorityDto,
+  UpdateTicketStatusDto,
+} from './dto';
 
 @Injectable()
 export class TicketsService extends PrismaClient implements OnModuleInit {
@@ -98,7 +103,6 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
         select: {
           id: true,
           status: true,
-          priority: true,
           updatedAt: true,
         },
       });
@@ -107,6 +111,33 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
       throw new RpcException({
         status: HttpStatus.BAD_REQUEST,
         message: `Failed updating status for ticket: ${ticketId}`,
+      });
+    }
+  }
+
+  async updatePriority(updateTicketPriorityDto: UpdateTicketPriorityDto) {
+    const { ticketId, priority } = updateTicketPriorityDto;
+    await this.findById(ticketId);
+
+    try {
+      return this.ticket.update({
+        where: {
+          id: ticketId,
+        },
+        data: {
+          priority,
+        },
+        select: {
+          id: true,
+          priority: true,
+          updatedAt: true,
+        },
+      });
+    } catch (error) {
+      this.logger.error(error);
+      throw new RpcException({
+        status: HttpStatus.BAD_REQUEST,
+        message: `Failed updating priority for ticket: ${ticketId}`,
       });
     }
   }

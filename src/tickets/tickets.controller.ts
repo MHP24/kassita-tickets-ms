@@ -1,7 +1,12 @@
 import { Controller, ParseUUIDPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { TicketsService } from './tickets.service';
-import { CreateTicketDto, PaginationDto, UpdateTicketStatusDto } from './dto';
+import {
+  CreateTicketDto,
+  PaginationDto,
+  UpdateTicketPriorityDto,
+  UpdateTicketStatusDto,
+} from './dto';
 
 @Controller()
 export class TicketsController {
@@ -25,6 +30,11 @@ export class TicketsController {
   @MessagePattern('ticket.update-status')
   updateStatus(@Payload() updateTicketStatustDto: UpdateTicketStatusDto) {
     return this.ticketsService.updateStatus(updateTicketStatustDto);
+  }
+
+  @MessagePattern('ticket.update-priority')
+  updatePriority(@Payload() updateTicketPriorityDto: UpdateTicketPriorityDto) {
+    return this.ticketsService.updatePriority(updateTicketPriorityDto);
   }
 
   // TODO: Create assign ticket
