@@ -7,10 +7,14 @@ import {
   UpdateTicketPriorityDto,
   UpdateTicketStatusDto,
 } from './dto';
+import { FilesManager, IdGenerator } from '../common';
+import { envs } from '../config';
 
 @Injectable()
 export class TicketsService extends PrismaClient implements OnModuleInit {
   private readonly logger = new Logger(TicketsService.name);
+  private readonly filesManager = new FilesManager();
+  private readonly idGen = new IdGenerator();
 
   onModuleInit() {
     this.$connect();
@@ -20,7 +24,31 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
   // * Create tickets
   async create(createTicketDto: CreateTicketDto) {
     try {
-      return await this.ticket.create({ data: createTicketDto });
+      // * Images formatting
+      const images = createTicketDto.images.map(
+        ({ originalname, ...rest }) => ({
+          ...rest,
+          originalname: `${this.idGen.generateId()}.${originalname
+            .split('.')
+            .at(-1)}`,
+        }),
+      );
+      // * File upload to S3 Bucket
+      images.forEach(
+        async ({ base64, originalname, mimetype }) =>
+          await this.filesManager.upload(
+            `${envs.awsS3BaseFolder}/${originalname}`,
+            mimetype,
+            base64,
+          ),
+      );
+      // * Database order creation
+      return await this.ticket.create({
+        data: {
+          ...createTicketDto,
+          images: images.map(({ originalname }) => originalname),
+        },
+      });
     } catch (error) {
       this.logger.error(error);
       throw new RpcException({

@@ -1,5 +1,13 @@
 import { TicketPriority, TicketStatus } from '@prisma/client';
-import { IsArray, IsEnum, IsString, IsUUID } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsString,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
+import { TicketImageDto } from './ticket-image.dto';
+import { Type } from 'class-transformer';
 
 export class CreateTicketDto {
   @IsString()
@@ -9,8 +17,9 @@ export class CreateTicketDto {
   description: string;
 
   @IsArray()
-  @IsString({ each: true }) // TODO: Finish this...
-  images?: string[] = ['image1.jpg'];
+  @ValidateNested({ each: true })
+  @Type(() => TicketImageDto)
+  images: TicketImageDto[];
 
   @IsEnum(TicketPriority, {
     message: `Valid priorities are: LOW | MEDIUM | HIGH`,
