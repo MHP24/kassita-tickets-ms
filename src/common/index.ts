@@ -3,3 +3,5 @@ export { FilesManagerAdapter } from './adapters/files/files-manager.adapter.inte
 
 export { IdGenerator } from './adapters/id/id-generator.adapter';
 export { IdGeneratorAdapter } from './adapters/id/id-generator.adapter.interface';
+
+export { User } from './types/user';

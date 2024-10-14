@@ -43,9 +43,11 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
           ),
       );
       // * Database order creation
+      const { user, ...rest } = createTicketDto;
       return await this.ticket.create({
         data: {
-          ...createTicketDto,
+          ...rest,
+          userId: user.id,
           images: images.map(({ originalname }) => originalname),
         },
       });
