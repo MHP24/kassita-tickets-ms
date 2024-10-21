@@ -2,7 +2,10 @@ import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { PrismaClient, TicketPriority, TicketStatus } from '@prisma/client';
 import {
+  AssignTicketDto,
+  CloseTicketDto,
   CreateTicketDto,
+  FindEmployeeTicketsDto,
   PaginationDto,
   UpdateTicketPriorityDto,
   UpdateTicketStatusDto,
@@ -186,5 +189,110 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
         message: `Failed updating priority for ticket: ${ticketId}`,
       });
     }
+  }
+
+  // * Assign ticket to specific user
+  async assignTicket({ ticketId, userId }: AssignTicketDto) {
+    const ticket = await this.ticket.findUnique({ where: { id: ticketId } });
+    // * Ticket validation
+    if (!ticket || ticket?.employeeId) {
+      throw new RpcException({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Bad Request',
+      });
+    }
+
+    return this.ticket.update({
+      where: {
+        id: ticketId,
+      },
+      data: {
+        employeeId: userId,
+        status: TicketStatus.IN_PROGRESS,
+      },
+      select: {
+        id: true,
+        status: true,
+        employeeId: true,
+      },
+    });
+  }
+
+  // * Find tickets as employee
+  findEmployeeTickets({ userId }: FindEmployeeTicketsDto) {
+    return this.ticket.findMany({
+      where: {
+        employeeId: userId,
+        status: {
+          notIn: [TicketStatus.SOLVED, TicketStatus.REJECTED],
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        createdAt: true,
+        priority: true,
+      },
+    });
+  }
+
+  // * Find tickets (cases) as user
+  findUserCases(userId: string) {
+    return this.ticket.findMany({
+      where: {
+        userId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        createdAt: true,
+        priority: true,
+      },
+    });
+  }
+
+  // * Close ticket could be REJECTED | SOLVED
+  async closeTicket(closeTicketDto: CloseTicketDto) {
+    const { ticketId, employeeId, response, status } = closeTicketDto;
+
+    // * Validation in case ticket already closed
+    const ticket = await this.ticket.findUnique({
+      where: {
+        id: ticketId,
+        employeeId,
+        resolvedAt: null,
+      },
+    });
+
+    if (!ticket) {
+      throw new RpcException({
+        status: HttpStatus.NOT_FOUND,
+        message: `Ticket with id: ${ticketId} already closed or does not exist`,
+      });
+    }
+
+    // * Update to close ticket
+    return this.ticket.update({
+      where: {
+        id: ticketId,
+      },
+      data: {
+        response,
+        status,
+        resolvedAt: new Date(),
+      },
+      select: {
+        id: true,
+        status: true,
+        resolvedAt: true,
+      },
+    });
   }
 }

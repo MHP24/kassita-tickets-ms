@@ -2,7 +2,11 @@ import { Controller, ParseUUIDPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { TicketsService } from './tickets.service';
 import {
+  AssignTicketDto,
+  CloseTicketDto,
   CreateTicketDto,
+  FindCasesDto,
+  FindEmployeeTicketsDto,
   PaginationDto,
   UpdateTicketPriorityDto,
   UpdateTicketStatusDto,
@@ -42,7 +46,27 @@ export class TicketsController {
     return this.ticketsService.updatePriority(updateTicketPriorityDto);
   }
 
-  // TODO: Create assign ticket
+  @MessagePattern('ticket.assign')
+  assignTicket(@Payload() assignTicketDto: AssignTicketDto) {
+    return this.ticketsService.assignTicket(assignTicketDto);
+  }
 
-  // TODO: Create find my tickets
+  @MessagePattern('ticket.find-for-employee')
+  findEmployeeTickets(
+    @Payload() findEmployeeTicketsDto: FindEmployeeTicketsDto,
+  ) {
+    return this.ticketsService.findEmployeeTickets(findEmployeeTicketsDto);
+  }
+
+  @MessagePattern('ticket.find-cases')
+  findUserCases(@Payload() findCasesDto: FindCasesDto) {
+    return this.ticketsService.findUserCases(findCasesDto.userId);
+  }
+
+  @MessagePattern('ticket.close')
+  closeTicket(@Payload() closeTicketDto: CloseTicketDto) {
+    return this.ticketsService.closeTicket(closeTicketDto);
+  }
+
+  // TODO: Add get ticket image
 }
