@@ -1,6 +1,12 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  GetObjectCommand,
+  GetObjectCommandOutput,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { FilesManagerAdapter } from './files-manager.adapter.interface';
 import { envs } from '../../../config';
+import { Readable } from 'stream';
 
 export class FilesManager implements FilesManagerAdapter {
   private readonly s3Client = new S3Client({
@@ -21,5 +27,23 @@ export class FilesManager implements FilesManagerAdapter {
         ContentType: mimetype,
       }),
     );
+  }
+
+  async download(fileKey: string): Promise<Buffer> {
+    const command = new GetObjectCommand({
+      Bucket: envs.awsS3Bucket,
+      Key: fileKey,
+    });
+
+    const response: GetObjectCommandOutput = await this.s3Client.send(command);
+
+    return new Promise((resolve, reject) => {
+      const chunks: any[] = [];
+      (response.Body as Readable).on('data', (chunk) => chunks.push(chunk));
+      (response.Body as Readable).on('end', () =>
+        resolve(Buffer.concat(chunks)),
+      );
+      (response.Body as Readable).on('error', reject);
+    });
   }
 }

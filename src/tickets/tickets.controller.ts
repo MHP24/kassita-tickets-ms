@@ -7,6 +7,7 @@ import {
   CreateTicketDto,
   FindCasesDto,
   FindEmployeeTicketsDto,
+  GetTicketImageDto,
   PaginationDto,
   UpdateTicketPriorityDto,
   UpdateTicketStatusDto,
@@ -69,4 +70,8 @@ export class TicketsController {
   }
 
   // TODO: Add get ticket image
+  @MessagePattern('ticket.image')
+  getTicketImage(@Payload() getTicketImageDto: GetTicketImageDto) {
+    return this.ticketsService.downloadImage(getTicketImageDto);
+  }
 }

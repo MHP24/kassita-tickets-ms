@@ -6,6 +6,7 @@ import {
   CloseTicketDto,
   CreateTicketDto,
   FindEmployeeTicketsDto,
+  GetTicketImageDto,
   PaginationDto,
   UpdateTicketPriorityDto,
   UpdateTicketStatusDto,
@@ -294,5 +295,16 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
         resolvedAt: true,
       },
     });
+  }
+
+  downloadImage({ name }: GetTicketImageDto) {
+    try {
+      return this.filesManager.download(`${envs.awsS3BaseFolder}/${name}`);
+    } catch (error) {
+      throw new RpcException({
+        status: HttpStatus.NOT_FOUND,
+        message: `Image: ${name} not found`,
+      });
+    }
   }
 }

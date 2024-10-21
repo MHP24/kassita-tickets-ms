@@ -8,3 +8,4 @@ export { AssignTicketDto } from './assign-ticket.dto';
 export { FindEmployeeTicketsDto } from './find-employee-tickets.dto';
 export { CloseTicketDto } from './close-ticket.dto';
 export { FindCasesDto } from './find-cases.dto';
+export { GetTicketImageDto } from './get-ticket-image.dto';
