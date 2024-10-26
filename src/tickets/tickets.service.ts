@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { PrismaClient, TicketPriority, TicketStatus } from '@prisma/client';
+import { PrismaClient, TicketStatus } from '@prisma/client';
 import {
   AssignTicketDto,
   CloseTicketDto,
@@ -69,13 +69,21 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
     try {
       // * Pagination calc
       const { limit = 10, page = 1, priority, status } = paginationDto;
+      const where = {
+        isAvailable: true,
+      };
+
+      // * Filters from query params
+      if (priority) {
+        where['priority'] = priority;
+      }
+
+      if (status) {
+        where['status'] = status;
+      }
 
       const totalPages = await this.ticket.count({
-        where: {
-          isAvailable: true,
-          priority: priority ?? TicketPriority.HIGH,
-          status: status ?? TicketStatus.PENDING,
-        },
+        where,
       });
       const lastPage = Math.ceil(totalPages / limit);
 
@@ -83,11 +91,7 @@ export class TicketsService extends PrismaClient implements OnModuleInit {
       const data = await this.ticket.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        where: {
-          isAvailable: true,
-          priority: priority ?? TicketPriority.MEDIUM,
-          status: status ?? TicketStatus.PENDING,
-        },
+        where,
       });
 
       return {
